@@ -7,6 +7,10 @@
 
 ## Changes to the Dashboard
 
+*** 2024/04/02 ***
+- Fix otions calculator errors
+- Added docker support
+
 *** 2023/07/29 ***
 - Added new flags.
 - Introduced a new stanza called `DASHBOARD` in the configuration file(fdmr-mon.cfg).
@@ -15,7 +19,7 @@
 - Added power, latitude, longitude, and height in repeater/hotspot descriptions.
 - Improved layout: Boxes and tables now hide when no repeaters, hotspots, or bridges are present.
 
-*** 2023/70/23 ***
+*** 2023/07/23 ***
 - The dashboard is now fully responsive and adapts to different screen sizes and devices.
 - Users can now switch between dark and light mode for a more comfortable viewing experience.
 - The dashboard now supports multiple languages, making it more accessible to users around the world.

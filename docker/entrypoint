@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if grep -q "USE_SSL = True" "/opt/FDMR-Monitor/fdmr-mon.cfg" && [ -f "/opt/apachecerts/cert.pem" ] && [ -f "/opt/apachecerts/key.pem" ] && [ -f "/opt/apachecerts/chain.pem" ]
+then
+	cron -L 0
+	a2ensite default-ssl.conf
+fi
+cd /opt/FDMR-Monitor/
+python3 /opt/FDMR-Monitor/monitor.py &
+
+exec docker-php-entrypoint apache2-foreground
