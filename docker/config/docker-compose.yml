@@ -60,6 +60,7 @@ services:
              - '/etc/freedmr/acme.sh:/root/.acme.sh/'
              - '/etc/freedmr/FDMR-Monitor/html/:/var/www/html/'
              - '/etc/freedmr/FDMR-Monitor/:/opt/FDMR-Monitor/'
+             - '/etc/freedmr/certs:/opt/FDMR-Monitor/ssl'
         ports:
             - '80:80/tcp'
             - '443:443/tcp'

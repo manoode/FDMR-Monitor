@@ -4,7 +4,7 @@ COPY config/000-default.conf /etc/apache2/sites-available/
 COPY config/default-ssl.conf /etc/apache2/sites-available/
 COPY config/gencert.sh /usr/local/bin/
 COPY entrypoint /entrypoint
-
+RUN chmod +x /usr/local/bin/gencert.sh
 
 
 RUN	echo Get some packages ... && \
