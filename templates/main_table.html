@@ -1,3 +1,4 @@
+{% if _table['MASTERS']|length >0 %}
 <!-- Statistics boxes -->
 {% set countcon = namespace(value=0) %}
 {% set countrepeaters = namespace(value=0) %}
@@ -53,13 +54,6 @@
     {% endfor %}
   {% endif %}
 
-  {% if _table['MASTERS']|length == 0 %}
-  <div class="preloader flex-column justify-content-center align-items-center">
-    <i class="fas fa-2x fa-sync-alt fa-spin"></i>
-    <span class="info-box-text" id="pre_wait"></span>
-  </div>
-{% endif %}
-
 <div class="row justify-content-center">
   <div class="col-lg-3 col-6">
     <div class="small-box bg-info">
@@ -72,6 +66,8 @@
       </div>
     </div>
   </div>
+  <!-- Repeaters -->
+  {% if countrepeaters.value > 0 %}
   <div class="col-lg-3 col-6">
     <div class="small-box bg-success">
       <div class="inner">
@@ -83,6 +79,9 @@
       </div>
     </div>
   </div>
+  {% endif %}
+  <!-- Hotspots -->
+  {% if counthotspots.value > 0 %}
   <div class="col-lg-3 col-6">
     <div class="small-box bg-warning">
       <div class="inner">
@@ -94,6 +93,9 @@
       </div>
     </div>
   </div>
+  {% endif %}
+  <!-- Bridges -->
+  {% if countbridges.value > 0 %}
   <div class="col-lg-3 col-6">
     <div class="small-box bg-danger">
       <div class="inner">
@@ -105,9 +107,11 @@
       </div>
     </div>
   </div>
+  {% endif %}
 </div>
 
   <!-- Activity Table-->
+  {% if countcon.value > 0 %}
   <div class="row">
     <div class="col-12">
       <div class="card"> <!-- 45px header + 75px per line -->
@@ -235,9 +239,10 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
 <!-- Table Last Heard -->
-{% if _table['MASTERS']|length >0 %}
+{% if _table['MASTERS']|length > 0 %}
 <div class="row justify-content-center">
   <div class="col-12">
     <div class="card">
@@ -321,7 +326,6 @@
 {% endif %}
 
 <!-- Connected systems -->
-{% if _table['MASTERS']|length >0 %}
 <div class="row justify-content-center">
   {% if countrepeaters.value > 0 %}
   <div class="col-md-4 col-12">
@@ -425,5 +429,11 @@ Tempo Conetado: {{ _cdata['CONNECTED'] }}"><b>{{_cdata['CALLSIGN']}}</b></a>&nbs
     </div>
   </div>
   {% endif %}
+</div>
+{% else %}
+<!-- Preload page-->
+<div class="preloader flex-column justify-content-center align-items-center">
+  <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+  <span class="info-box-text" id="pre_wait"></span>
 </div>
 {% endif %}
