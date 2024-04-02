@@ -46,9 +46,11 @@
                         <li>
                             <a href="index.php?p=wwbridges" class="dropdown-item" id="nav_brdglst"></a>
                         </li>
-                        <!-- <li>
-                            <a href="index.php?p=wwservers" class="dropdown-item" id="nav_srvlst"></a>
-                        </li> -->
+                        <?php
+                        if (isset($config['DASHBOARD']['SERVER_LIST'])) {
+                            echo '<li><a href="index.php?p=wwservers" class="dropdown-item" id="nav_srvlst"></a></li>';
+                        }
+                        ?>
                     </ul>
                 </li>
                 <?php
