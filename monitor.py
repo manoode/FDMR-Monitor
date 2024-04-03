@@ -1,30 +1,4 @@
 #!/usr/bin/env python3
-###############################################################################
-#   Copyright (C) 2016-2019  Cortney T. Buffington, N0MJS <n0mjs@me.com>
-#
-#   This program is free software; you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation; either version 3 of the License, or
-#   (at your option) any later version.
-#
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-#
-#   You should have received a copy of the GNU General Public License
-#   along with this program; if not, write to the Free Software Foundation,
-#   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
-###############################################################################
-#
-#   Python 3 port by Steve Miller, KC1AWV <smiller@kc1awv.net>
-#   HBMonitor v2 (2021) Version by Waldek SP2ONG
-#
-###############################################################################
-#
-#  FDMR-Monitor (2021-22) Version by Christian Quiroz OA4DOA <adm@dmr-peru.pe>
-#
-###############################################################################
 
 # Standard modules
 import logging
@@ -55,9 +29,8 @@ from mon_db import MoniDB
 from config import mk_config
 from log import create_logger
 
-__version__ = '1.0.0'
 
-# SP2ONG - Increase the value if HBlink link break occurs
+# Increase the value if HBlink link break occurs
 NetstringReceiver.MAX_LENGTH = 500000000
 
 # Opcodes for reporting protocol to HBlink
@@ -84,7 +57,7 @@ CTABLE = {
     "MASTERS": {},
     "PEERS": {},
     "OPENBRIDGES": {},
-    "SETUP": {"LASTHEARD": CONF["GLOBAL"]["LH_INC"]}
+    "SETUP": {"LASTHEARD": True}
     }
 BTABLE = {
     "BRIDGES": {},
@@ -514,7 +487,7 @@ def build_hblink_table(_config, _stats_table):
 
             # Process Peer Systems
             elif (_hbp_data["MODE"] == "XLXPEER" or _hbp_data["MODE"] == "PEER"
-                  and CONF["GLOBAL"]["HB_INC"]):
+                  and CONF["GLOBAL"]["PR_INC"]):
                 _stats_table["PEERS"][_hbp] = {}
                 _stats_table["PEERS"][_hbp]["MODE"] = _hbp_data["MODE"]
 
@@ -970,17 +943,16 @@ def process_message(_bmessage):
                     f"SUB: {p[6]:9.9s}; {alias_short(int(p[6]), subscriber_ids):18.18s} "
                     f"Time: {int(float(p[9]))}s")
 
-                if CONF["GLOBAL"]["TGC_INC"] and int(float(p[9])) > 5:
+                if int(float(p[9])) > 5:
                     # Get data for TG Count
                     db_conn.ins_tgcount(p[8], p[6], p[9])
 
-                if CONF["GLOBAL"]["LH_INC"]:
+                # use >= 0 instead of > 2 if you want to record all activities
+                if int(float(p[9])) > 2:
+                    # Insert voice qso into lstheard DB table
+                    db_conn.ins_lstheard(p[9], p[0], p[3], p[8], p[6])
                     # Insert voice qso into lstheard_log DB table
                     db_conn.ins_lstheard_log(p[9], p[0], p[3], p[8], p[6])
-                    # use >= 0 instead of > 2 if you want to record all activities
-                    if int(float(p[9])) > 2:
-                        # Insert voice qso into lstheard DB table
-                        db_conn.ins_lstheard(p[9], p[0], p[3], p[8], p[6])
 
                 # Removing obsolete entries from the sys_dict (3 sec)
                 if not sys_dict["lst_clean"] or time() - sys_dict["lst_clean"] >= 3:
@@ -1133,7 +1105,7 @@ class dashboard(WebSocketServerProtocol):
                             _table=CTABLE, emaster=CONF["GLOBAL"]["EMPTY_MASTERS"])).encode("utf-8"))
                 elif group == "lsthrd_log":
                     render_fromdb("lstheard_log", LASTHEARD_LOG_ROWS, self)
-                elif group == "tgcount" and CONF["GLOBAL"]["TGC_INC"]:
+                elif group == "tgcount":
                     render_fromdb("tgcount", CONF["GLOBAL"]["TGC_ROWS"], self)
                 elif group == "log":
                     for _message in LOGBUF:
@@ -1199,8 +1171,7 @@ def files_update():
 
 
 def cleaning_loop():
-    if CONF["GLOBAL"]["TGC_INC"]:
-        clean_tgcount()
+    clean_tgcount()
     tbls = (("last_heard", CONF["GLOBAL"]["LH_ROWS"]),
             ("lstheard_log", LASTHEARD_LOG_ROWS))
     for _table, _row_num in tbls:
@@ -1224,7 +1195,7 @@ if __name__ == "__main__":
     logger.info("monitor.py starting up")
     logger.info("\n\n\tCopyright (c) 2016-2022\n\tThe Regents of the K0USY Group. All rights "
                 "reserved.\n\n\tPython 3 port:\n\t2019 Steve Miller, KC1AWV <smiller@kc1awv.net>"
-                "\n\n\tFDMR-Monitor OA4DOA 2022\n\n")
+                "\n\n\tFDMR-Monitor CS8ABG 2024\n\n")
 
     # Create an instance of MoniDB
     db_conn = MoniDB("mon.db")
@@ -1254,9 +1225,8 @@ if __name__ == "__main__":
         timeout.start(10).addErrback(error_hdl)
 
     # TG Count loop
-    if CONF["GLOBAL"]["TGC_INC"]:
-        tgc = task.LoopingCall(render_fromdb, "tgcount", CONF["GLOBAL"]["TGC_ROWS"])
-        tgc.start(60).addErrback(error_hdl)
+    tgc = task.LoopingCall(render_fromdb, "tgcount", CONF["GLOBAL"]["TGC_ROWS"])
+    tgc.start(60).addErrback(error_hdl)
 
     # files update loop
     file_loop = task.LoopingCall(files_update)
@@ -1274,19 +1244,6 @@ if __name__ == "__main__":
     # Connect to HBlink
     reactor.connectTCP(
         CONF["FDMR_CXN"]["FD_IP"], CONF["FDMR_CXN"]["FD_PORT"], reportClientFactory())
-
-    # HBmonitor does not require the use of SSL as no "sensitive data" is sent to it but if you want to use SSL:
-    # create websocket server to push content to clients via SSL https://
-    # the web server apache2 should be configured with a signed certificate for example Letsencrypt
-    # we need install pyOpenSSL required by twisted: pip3 install pyOpenSSL
-    # and add load ssl module in line number 43: from twisted.internet import reactor, task, ssl
-    #
-    # put certificate https://letsencrypt.org/ used in apache server
-    # certificate = ssl.DefaultOpenSSLContextFactory("/etc/letsencrypt/live/hbmon.dmrserver.org/privkey.pem",
-    # "/etc/letsencrypt/live/hbmon.dmrserver.org/cert.pem")
-    # dashboard_server = dashboardFactory("wss://*:9000")
-    # dashboard_server.protocol = dashboard
-    # reactor.listenSSL(9000, dashboard_server,certificate)
 
     logger.info(f'Starting webserver on port {CONF["WS"]["WS_PORT"]} with SSL = {CONF["WS"]["USE_SSL"]}')
 
