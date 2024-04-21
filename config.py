@@ -60,9 +60,9 @@ def mk_config(cfg_file):
                     "LCL_PEER": conf.get(section, "LOCAL_PEER_FILE"),
                     "LCL_TGID": conf.get(section, "LOCAL_TGID_FILE"),
                     "RELOAD_TIME": conf.getint(section, "RELOAD_TIME", fallback=7) * 864000,
-                    "PEER_URL": conf.get(section, "PEER_URL", fallback="http://freedmr.cymru/talkgroups/rptrs.json"),
-                    "SUBS_URL": conf.get(section, "SUBSCRIBER_URL", fallback="http://freedmr.cymru/talkgroups/local_subscriber_ids.csv"),
-                    "TGID_URL": conf.get(section, "TGID_URL", fallback="http://downloads.freedmr.uk/downloads/UKtalkgroup_ids.json")
+                    "PEER_URL": conf.get(section, "PEER_URL"),
+                    "SUBS_URL": conf.get(section, "SUBSCRIBER_URL"),
+                    "TGID_URL": conf.get(section, "TGID_URL")
                     }
             elif section == "LOGGER":
                 CONF["LOG"] = {
